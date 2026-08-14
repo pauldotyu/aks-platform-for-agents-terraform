@@ -47,3 +47,19 @@ resource "azurerm_role_assignment" "managed_namespace_user" {
   role_definition_name = "Azure Kubernetes Service Namespace User"
   scope                = azapi_resource.managed_namespace[each.value.namespace_key].id
 }
+
+resource "azurerm_role_assignment" "managed_namespace_writer" {
+  for_each = merge({}, [
+    for namespace_key, namespace in var.namespaces : {
+      for principal_id in toset(namespace.users) :
+      "${namespace_key}:${principal_id}" => {
+        namespace_key = namespace_key
+        principal_id  = principal_id
+      }
+    }
+  ]...)
+
+  principal_id         = each.value.principal_id
+  role_definition_name = "Azure Kubernetes Service RBAC Writer"
+  scope                = azapi_resource.managed_namespace[each.value.namespace_key].id
+}

@@ -19,6 +19,18 @@ deployment "dev" {
 
     admin_principal_ids = ["7002a869-11f9-4ac2-8cad-c16a09128b02"] # paul@yucancloud.com
 
+    model_deployment = {
+      model = {
+        format  = "OpenAI"
+        name    = "gpt-5.4-mini"
+        version = "2026-03-17"
+      }
+      sku = {
+        name     = "GlobalStandard"
+        capacity = 500
+      }
+    }
+
     kubernetes_namespaces = {
       "demo" = {
         owner           = "team1"

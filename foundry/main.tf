@@ -10,18 +10,18 @@ resource "azurerm_cognitive_account" "example" {
 
 resource "azurerm_cognitive_deployment" "example" {
   cognitive_account_id = azurerm_cognitive_account.example.id
-  name                 = var.model_name
+  name                 = var.model_deployment.model.name
   rai_policy_name      = "Microsoft.DefaultV2"
 
   model {
-    format  = var.model_format
-    name    = var.model_name
-    version = var.model_version
+    format  = var.model_deployment.model.format
+    name    = var.model_deployment.model.name
+    version = var.model_deployment.model.version
   }
 
   sku {
-    name     = var.model_sku_name
-    capacity = var.model_sku_capacity
+    name     = var.model_deployment.sku.name
+    capacity = var.model_deployment.sku.capacity
   }
 }
 

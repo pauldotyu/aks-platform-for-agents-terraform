@@ -152,6 +152,7 @@ component "foundry" {
     resource_group_location  = component.resource_group[each.value].resource_group_location
     random_pet_name          = component.resource_group[each.value].random_pet_name
     model_user_principal_ids = var.admin_principal_ids
+    model_deployment         = var.model_deployment
 
     federated_identity_credentials = {
       for namespace_key, namespace in var.kubernetes_namespaces :

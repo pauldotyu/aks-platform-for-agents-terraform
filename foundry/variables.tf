@@ -13,34 +13,19 @@ variable "random_pet_name" {
   type        = string
 }
 
-variable "model_format" {
-  description = "The format of the model."
-  type        = string
-  default     = "OpenAI"
-}
-
-variable "model_name" {
-  description = "The name of the model."
-  type        = string
-  default     = "gpt-5.4-mini"
-}
-
-variable "model_version" {
-  description = "The version of the model."
-  type        = string
-  default     = "2026-03-17"
-}
-
-variable "model_sku_name" {
-  description = "The SKU name of the model."
-  type        = string
-  default     = "GlobalStandard"
-}
-
-variable "model_sku_capacity" {
-  description = "The SKU capacity of the model."
-  type        = number
-  default     = 200
+variable "model_deployment" {
+  description = "The model deployment"
+  type = object({
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    sku = object({
+      name     = string
+      capacity = number
+    })
+  })
 }
 
 variable "federated_identity_credentials" {

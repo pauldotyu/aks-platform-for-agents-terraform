@@ -28,6 +28,21 @@ variable "admin_principal_ids" {
   default     = []
 }
 
+variable "model_deployment" {
+  description = "The model deployment"
+  type = object({
+    model = object({
+      format  = string
+      name    = string
+      version = string
+    })
+    sku = object({
+      name     = string
+      capacity = number
+    })
+  })
+}
+
 variable "kubernetes_namespaces" {
   description = "A map of Kubernetes namespaces to be created in the AKS cluster."
   type = map(object({
@@ -39,7 +54,7 @@ variable "kubernetes_namespaces" {
     network_policy = optional(object({
       egress  = string
       ingress = string
-    }), {
+      }), {
       egress  = "AllowAll"
       ingress = "AllowAll"
     })
@@ -48,7 +63,7 @@ variable "kubernetes_namespaces" {
       cpuRequest    = string
       memoryLimit   = string
       memoryRequest = string
-    }), {
+      }), {
       cpuLimit      = "2000m"
       cpuRequest    = "2000m"
       memoryLimit   = "4096Mi"
