@@ -1,26 +1,28 @@
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_kubernetes_automatic_cluster" "example" {
-  resource_group_name = var.resource_group_name
-  location            = var.resource_group_location
-  name                = "aks-${var.random_pet_name}"
+resource "azapi_resource" "aks" {
+  type      = "Microsoft.ContainerService/managedClusters@2026-03-02-preview"
+  parent_id = var.resource_group_id
+  location  = var.resource_group_location
+  name      = "aks-${var.random_pet_name}"
 
-  identity {
-    type = "SystemAssigned"
-  }
-
-  web_app_routing_ingress {
-    istio_enabled = true
-  }
-}
-
-# temporary workaround for enabling monitoring
-resource "azapi_update_resource" "aks" {
-  type        = "Microsoft.ContainerService/managedClusters@2026-03-02-preview"
-  resource_id = azurerm_kubernetes_automatic_cluster.example.id
+  // this required when azapi local schema check isn't aware of the latest api version
+  schema_validation_enabled = false
 
   body = {
+    identity = {
+      type = "SystemAssigned"
+    },
     properties = {
+      dnsPrefix = "aks-${var.random_pet_name}"
+      agentPoolProfiles = [
+        {
+          name       = "systempool"
+          mode       = "System"
+          count      = 3
+          nodeTaints = ["CriticalAddonsOnly=true:NoSchedule"]
+        }
+      ]
       addonProfiles = {
         omsagent = {
           enabled = true
@@ -54,13 +56,58 @@ resource "azapi_update_resource" "aks" {
           }
         }
       }
+      ingressProfile = {
+        gatewayAPI = {
+          installation = "Standard"
+        }
+        webAppRouting = {
+          gatewayAPIImplementations = {
+            appRoutingIstio = {
+              mode = "Enabled"
+            }
+          }
+        }
+      }
+      networkProfile = {
+        networkPlugin     = "azure"
+        networkPluginMode = "overlay"
+        networkPolicy     = "cilium"
+        networkDataplane  = "cilium"
+        loadBalancerSku   = "Standard"
+      }
+      nodeProvisioningProfile = {
+        defaultNodePools = "Auto"
+        mode             = "Auto"
+      }
+      oidcIssuerProfile = {
+        enabled = true
+      }
+      securityProfile = {
+        workloadIdentity = {
+          enabled = true
+        }
+      }
+    }
+    sku = {
+      name = "Base"
+      tier = "Standard"
     }
   }
+
+  response_export_values = [
+    "properties.oidcIssuerProfile.issuerURL",
+    "properties.identityProfile.kubeletidentity.objectId"
+  ]
 }
 
-resource "azurerm_role_assignment" "example" {
-  for_each             = var.cluster_admin_principal_ids
-  principal_id         = each.value
-  role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
-  scope                = azurerm_kubernetes_automatic_cluster.example.id
+# another workaround for retrieving the kubeconfig, since the azurerm provider does not support it yet
+resource "azapi_resource_action" "get_aks_creds" {
+  type                   = azapi_resource.aks.type
+  resource_id            = azapi_resource.aks.id
+  action                 = "listClusterUserCredential"
+  response_export_values = ["*"]
+}
+
+locals {
+  kubeconfig = yamldecode(base64decode(azapi_resource_action.get_aks_creds.output.kubeconfigs[0].value))
 }

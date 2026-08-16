@@ -17,7 +17,7 @@ deployment "dev" {
     subscription_id = store.varset.dev.ARM_SUBSCRIPTION_ID
     tenant_id       = store.varset.dev.ARM_TENANT_ID
 
-    admin_principal_ids = ["7002a869-11f9-4ac2-8cad-c16a09128b02"] # paul@yucancloud.com
+    admin_principal_ids = ["ac06e8cd-0928-40aa-b8f2-6b4ac947ec4e"] # pauyu@microsoft.com
 
     model_deployment = {
       model = {
@@ -34,7 +34,7 @@ deployment "dev" {
     kubernetes_namespaces = {
       "demo" = {
         owner           = "team1"
-        users           = ["4ccbb51c-654a-4239-b2ab-633aa2c0290f"] # pauyu@microsoft.com
+        users           = ["ac06e8cd-0928-40aa-b8f2-6b4ac947ec4e"] # pauyu@microsoft.com
         service_account = "demo"
         network_policy = {
           egress  = "AllowAll"

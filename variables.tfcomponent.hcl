@@ -71,3 +71,26 @@ variable "kubernetes_namespaces" {
     })
   }))
 }
+
+variable "k8s_apps" {
+  description = "A map of Kubernetes applications to be deployed in the AKS cluster."
+  type = map(object({
+    chart            = string
+    version          = optional(string)
+    name             = string
+    namespace        = string
+    create_namespace = optional(bool, true)
+    values           = optional(list(string), [])
+    set = optional(list(object({
+      name  = string
+      value = string
+      type  = optional(string)
+    })), [])
+    set_sensitive = optional(list(object({
+      name  = string
+      value = string
+      type  = optional(string)
+    })), [])
+  }))
+  default = {}
+}

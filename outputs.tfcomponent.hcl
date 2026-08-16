@@ -110,3 +110,19 @@ output "foundry_workload_identity_principal_ids" {
     for region, foundry in component.foundry : region => foundry.foundry_workload_identity_principal_id
   }
 }
+
+# output "k8s_app_release_names" {
+#   description = "Helm release name for each Azure region"
+#   type        = map(string)
+#   value = {
+#     for region, app in component.k8s_app : region => app.release_name
+#   }
+# }
+
+# output "k8s_app_release_statuses" {
+#   description = "Helm release status for each Azure region"
+#   type        = map(string)
+#   value = {
+#     for region, app in component.k8s_app : region => app.release_status
+#   }
+# }

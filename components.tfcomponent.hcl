@@ -89,7 +89,7 @@ component "aks_cluster" {
   source = "./aks_cluster"
 
   inputs = {
-    resource_group_name         = component.resource_group[each.value].resource_group_name
+    resource_group_id           = component.resource_group[each.value].resource_group_id
     resource_group_location     = component.resource_group[each.value].resource_group_location
     random_pet_name             = component.resource_group[each.value].random_pet_name
     log_analytics_workspace_id  = component.log_analytics[each.value].log_analytics_workspace_id
@@ -119,6 +119,7 @@ component "managed_namespaces" {
     azurerm = provider.azurerm.configurations[each.value]
   }
 }
+
 component "prometheus" {
   for_each = var.regions
 
