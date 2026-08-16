@@ -49,4 +49,6 @@ deployment "dev" {
       }
     }
   }
+  
+  destroy = true
 }
