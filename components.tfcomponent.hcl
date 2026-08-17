@@ -4,6 +4,7 @@ component "resource_group" {
   source = "./resource_group"
 
   inputs = {
+    prefix = var.prefix
     region = each.value
   }
 

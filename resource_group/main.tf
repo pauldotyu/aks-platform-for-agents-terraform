@@ -1,5 +1,5 @@
 resource "random_pet" "group_name" {
-  prefix = "demo"
+  prefix = var.prefix
   length = 1
 }
 

@@ -1,3 +1,8 @@
+variable "prefix" {
+  description = "Prefix for all resources created by this component."
+  type        = string
+}
+
 variable "regions" {
   type = set(string)
 }

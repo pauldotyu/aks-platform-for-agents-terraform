@@ -8,9 +8,12 @@ store "varset" "dev" {
 }
 
 deployment "dev" {
+  # destroy = true
+
   inputs = {
     identity_token = identity_token.azurerm.jwt
 
+    prefix  = "demo"
     regions = ["westus3"]
 
     client_id       = store.varset.dev.ARM_CLIENT_ID
