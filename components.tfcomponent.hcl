@@ -105,7 +105,7 @@ component "aks_cluster" {
 component "managed_namespaces" {
   for_each = var.regions
 
-  source = "./managed_namespaces"
+  source = "./managed_namespace"
 
   inputs = {
     aks_cluster_id          = component.aks_cluster[each.value].aks_cluster_id
@@ -167,5 +167,43 @@ component "foundry" {
 
   providers = {
     azurerm = provider.azurerm.configurations[each.value]
+  }
+}
+
+component "argocd_app" {
+  for_each = {
+    for pair in setproduct(var.regions, keys(var.argocd_apps)) :
+    "${pair[0]}:${pair[1]}" => {
+      region = pair[0]
+      app    = var.argocd_apps[pair[1]]
+    }
+  }
+
+  source = "./argocd_app"
+
+  inputs = {
+    application_name      = each.value.app.application_name
+    argocd_namespace      = each.value.app.argocd_namespace
+    project               = each.value.app.project
+    destination_namespace = each.value.app.destination_namespace
+    repo_url              = each.value.app.repo_url
+    chart                 = each.value.app.chart
+    target_version        = each.value.app.target_version
+    values_object = templatestring(each.value.app.values_object, {
+      application_name                       = each.value.app.application_name
+      destination_namespace                  = each.value.app.destination_namespace
+      otel_logs_endpoint                     = component.otel[each.value.region].otel_logs_endpoint
+      otel_metrics_endpoint                  = component.otel[each.value.region].otel_metrics_endpoint
+      otel_traces_endpoint                   = component.otel[each.value.region].otel_traces_endpoint
+      application_insights_connection_string = component.otel[each.value.region].application_insights_connection_string
+      foundry_openai_base_url                = component.foundry[each.value.region].foundry_openai_base_url
+      foundry_model_deployment_name          = component.foundry[each.value.region].foundry_model_deployment_name
+      foundry_workload_identity_client_id    = component.foundry[each.value.region].foundry_workload_identity_client_id
+    })
+    create_namespace = each.value.app.create_namespace
+  }
+
+  providers = {
+    kubernetes = provider.kubernetes.configurations[each.value.region]
   }
 }

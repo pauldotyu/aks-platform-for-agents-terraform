@@ -8,17 +8,17 @@ The current `dev` deployment targets `westus3`.
 
 For each entry in `regions`, the Stack creates:
 
-| Component            | Resources and purpose                                                                                       |
-| -------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `resource_group`     | Resource group named `rg-demo-*`                                                                            |
-| `log_analytics`      | Log Analytics workspace                                                                                     |
-| `monitor`            | Azure Monitor workspace                                                                                     |
-| `otel`               | Application Insights resource configured for OpenTelemetry and Azure Monitor workspace ingestion            |
-| `grafana`            | Azure Managed Grafana connected to the Azure Monitor workspace                                              |
-| `aks_cluster`        | AKS Automatic cluster with Istio, Container Insights, managed Prometheus, and application monitoring        |
-| `managed_namespaces` | AKS managed namespaces, namespace policy, quota, metadata, and namespace-scoped user RBAC                   |
-| `prometheus`         | Data collection endpoints, rules, associations, and Prometheus recording rules                              |
-| `foundry`            | Azure AI Services account, model deployment, managed identity, workload identity federation, and model RBAC |
+| Component           | Resources and purpose                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `resource_group`    | Resource group named `rg-demo-*`                                                                            |
+| `log_analytics`     | Log Analytics workspace                                                                                     |
+| `monitor`           | Azure Monitor workspace                                                                                     |
+| `otel`              | Application Insights resource configured for OpenTelemetry and Azure Monitor workspace ingestion            |
+| `grafana`           | Azure Managed Grafana connected to the Azure Monitor workspace                                              |
+| `aks_cluster`       | AKS Automatic cluster with Istio, Container Insights, managed Prometheus, and application monitoring        |
+| `managed_namespace` | AKS managed namespaces, namespace policy, quota, metadata, and namespace-scoped user RBAC                   |
+| `prometheus`        | Data collection endpoints, rules, associations, and Prometheus recording rules                              |
+| `foundry`           | Azure AI Services account, model deployment, managed identity, workload identity federation, and model RBAC |
 
 ```mermaid
 flowchart TD
@@ -225,6 +225,54 @@ deployment "dev" {
 Adding another region creates another complete component graph. Adding another namespace map entry creates that namespace, its user role assignments, and its Foundry federated identity credential in every configured region.
 
 Set `destroy = true` only when you intend HCP Terraform to destroy the deployment.
+
+## Configure Argo CD applications
+
+`argocd_apps` creates an Argo CD `Application` custom resource in every configured region. The `values_object` field accepts YAML text and renders it as `spec.source.helm.valuesObject`.
+
+```hcl
+argocd_apps = {
+  sundae_funday = {
+    application_name      = "sundae-funday"
+    destination_namespace = "demo"
+    repo_url              = "ghcr.io/pauldotyu/charts"
+    chart                 = "sundae-funday"
+    target_version        = "0.1.0-c8cefc2"
+    create_namespace      = true
+
+    values_object = <<-YAML
+      image:
+        tag: 0.1.0-c8cefc2
+      config:
+        OTEL_EXPORTER_OTLP_ENDPOINT: "$${otel_traces_endpoint}"
+        OPENAI_BASE_URL: "$${foundry_openai_base_url}"
+        OPENAI_CHAT_MODEL: "$${foundry_model_deployment_name}"
+        OPENAI_AUTH_MODE: workload_identity
+      secret:
+        data:
+          APPLICATIONINSIGHTS_CONNECTION_STRING: "$${application_insights_connection_string}"
+          OPENAI_API_KEY: ""
+      workloadIdentity:
+        enabled: true
+        clientId: "$${foundry_workload_identity_client_id}"
+    YAML
+  }
+}
+```
+
+The Stack renders these template variables separately for each region:
+
+- `application_name`
+- `destination_namespace`
+- `otel_logs_endpoint`
+- `otel_metrics_endpoint`
+- `otel_traces_endpoint`
+- `application_insights_connection_string`
+- `foundry_openai_base_url`
+- `foundry_model_deployment_name`
+- `foundry_workload_identity_client_id`
+
+Set `create_namespace = false` to omit the Argo CD `CreateNamespace=true` sync option. Argo CD and its `Application` CRD must already exist in the target cluster before this component is planned.
 
 ## Validate locally
 

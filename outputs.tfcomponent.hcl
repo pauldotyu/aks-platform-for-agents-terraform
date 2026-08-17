@@ -14,6 +14,14 @@ output "otel_metrics_endpoints" {
   }
 }
 
+output "otel_traces_endpoints" {
+  description = "OpenTelemetry traces endpoint for each Azure region"
+  type        = map(string)
+  value = {
+    for region, otel in component.otel : region => otel.otel_traces_endpoint
+  }
+}
+
 output "application_insights_connection_strings" {
   description = "Application Insights connection string for each Azure region"
   type        = map(string)
@@ -108,6 +116,14 @@ output "foundry_workload_identity_principal_ids" {
   type        = map(string)
   value = {
     for region, foundry in component.foundry : region => foundry.foundry_workload_identity_principal_id
+  }
+}
+
+output "argocd_application_names" {
+  description = "Argo CD Application names keyed by region and application key."
+  type        = map(string)
+  value = {
+    for key, app in component.argocd_app : key => app.application_name
   }
 }
 

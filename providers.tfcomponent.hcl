@@ -70,7 +70,7 @@ provider "kubernetes" "configurations" {
 }
 
 provider "helm" "configurations" {
-  for_each = var.helm_releases == null ? toset([]) : var.regions
+  for_each = length(var.helm_releases) == 0 ? toset([]) : var.regions
 
   config {
     kubernetes = {

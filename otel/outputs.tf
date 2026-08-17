@@ -8,6 +8,11 @@ output "otel_metrics_endpoint" {
   value       = azapi_resource.otel.output.properties.OTLPMetricsEndpoint
 }
 
+output "otel_traces_endpoint" {
+  description = "The endpoint for OpenTelemetry traces"
+  value       = azapi_resource.otel.output.properties.OTLPTracesEndpoint
+}
+
 output "application_insights_connection_string" {
   description = "The connection string for Application Insights"
   value       = azapi_resource.otel.output.properties.ConnectionString

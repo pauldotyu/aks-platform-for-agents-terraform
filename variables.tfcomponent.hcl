@@ -73,24 +73,17 @@ variable "kubernetes_namespaces" {
 }
 
 variable "argocd_apps" {
-  description = "A map of ArgoCD Applications to be deployed in the AKS cluster."
+  description = "A map of Argo CD Applications to deploy in each regional AKS cluster."
   type = map(object({
-    chart            = string
-    version          = optional(string)
-    name             = string
-    namespace        = string
-    create_namespace = optional(bool, true)
-    values           = optional(list(string), [])
-    set = optional(list(object({
-      name  = string
-      value = string
-      type  = optional(string)
-    })), [])
-    set_sensitive = optional(list(object({
-      name  = string
-      value = string
-      type  = optional(string)
-    })), [])
+    application_name      = string
+    argocd_namespace      = optional(string, "argocd")
+    project               = optional(string, "default")
+    destination_namespace = string
+    repo_url              = string
+    chart                 = string
+    target_version        = string
+    values_object         = optional(string, "{}")
+    create_namespace      = optional(bool, true)
   }))
   default = {}
 }
