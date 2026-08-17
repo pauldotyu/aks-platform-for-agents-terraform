@@ -3,14 +3,22 @@ required_providers {
     source  = "Azure/azapi"
     version = "~> 2.12"
   }
+
   azurerm = {
     source  = "hashicorp/azurerm"
     version = "~> 5.1"
   }
+
+  kubernetes = {
+    source  = "hashicorp/kubernetes"
+    version = "=3.2.1"
+  }
+
   helm = {
     source  = "hashicorp/helm"
     version = "~> 3.2.0"
   }
+
   random = {
     source  = "hashicorp/random"
     version = "~> 3.9"
@@ -49,8 +57,20 @@ provider "azurerm" "configurations" {
   }
 }
 
+provider "kubernetes" "configurations" {
+  for_each = length(var.argocd_apps) == 0 ? toset([]) : var.regions
+
+  config {
+    host                   = component.aks_cluster[each.key].aks_cluster_host
+    cluster_ca_certificate = base64decode(component.aks_cluster[each.key].aks_cluster_ca_certificate)
+    client_certificate     = base64decode(component.aks_cluster[each.key].aks_cluster_client_certificate)
+    client_key             = base64decode(component.aks_cluster[each.key].aks_cluster_client_key)
+  }
+
+}
+
 provider "helm" "configurations" {
-  for_each = length(var.k8s_apps) == 0 ? toset([]) : var.regions
+  for_each = var.helm_releases == null ? toset([]) : var.regions
 
   config {
     kubernetes = {

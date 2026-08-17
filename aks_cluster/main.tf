@@ -100,6 +100,13 @@ resource "azapi_resource" "aks" {
   ]
 }
 
+resource "azurerm_kubernetes_cluster_extension" "argocd" {
+  name           = "argocd"
+  cluster_id     = azapi_resource.aks.id
+  extension_type = "Microsoft.ArgoCD"
+  release_train  = "Preview"
+}
+
 # another workaround for retrieving the kubeconfig, since the azurerm provider does not support it yet
 resource "azapi_resource_action" "get_aks_creds" {
   type                   = azapi_resource.aks.type
