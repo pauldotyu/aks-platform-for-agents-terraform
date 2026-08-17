@@ -8,7 +8,7 @@ store "varset" "dev" {
 }
 
 deployment "dev" {
-  # destroy = true
+  destroy = true
 
   inputs = {
     identity_token = identity_token.azurerm.jwt
