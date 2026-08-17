@@ -8,12 +8,12 @@ store "varset" "dev" {
 }
 
 deployment "dev" {
-  destroy = true
+  # destroy = true
 
   inputs = {
     identity_token = identity_token.azurerm.jwt
 
-    prefix  = "demo"
+    prefix  = "dev"
     regions = ["westus3"]
 
     client_id       = store.varset.dev.ARM_CLIENT_ID
@@ -49,34 +49,6 @@ deployment "dev" {
           memoryLimit   = "8192Mi"
           memoryRequest = "4096Mi"
         }
-      }
-    }
-
-    argocd_apps = {
-      sundae_funday = {
-        application_name      = "sundae-funday"
-        destination_namespace = "demo"
-        repo_url              = "ghcr.io/pauldotyu/charts"
-        chart                 = "sundae-funday"
-        target_version        = "0.1.0-c8cefc2"
-        create_namespace      = false
-
-        values_object = <<-YAML
-          image:
-            tag: 0.1.0-c8cefc2
-          config:
-            OTEL_EXPORTER_OTLP_ENDPOINT: "$${otel_traces_endpoint}"
-            OPENAI_BASE_URL: "$${foundry_openai_base_url}"
-            OPENAI_CHAT_MODEL: "$${foundry_model_deployment_name}"
-            OPENAI_AUTH_MODE: workload_identity
-          secret:
-            data:
-              APPLICATIONINSIGHTS_CONNECTION_STRING: "$${application_insights_connection_string}"
-              OPENAI_API_KEY: ""
-          workloadIdentity:
-            enabled: true
-            clientId: "$${foundry_workload_identity_client_id}"
-        YAML
       }
     }
   }
